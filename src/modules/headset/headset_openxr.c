@@ -145,6 +145,7 @@ static struct {
   XrHandTrackerEXT handTrackers[2];
   struct {
     bool handTracking;
+    bool overlay;
   } features;
 } state;
 
@@ -198,12 +199,17 @@ static bool openxr_init(float supersample, float offset, uint32_t msaa, bool ove
     for (uint32_t i = 0; i < extensionCount; i++) extensions[i].type = XR_TYPE_EXTENSION_PROPERTIES;
     xrEnumerateInstanceExtensionProperties(NULL, 32, &extensionCount, extensions);
 
-    const char* enabledExtensionNames[4];
+    const char* enabledExtensionNames[5];
     uint32_t enabledExtensionCount = 0;
 
 #ifdef __ANDROID__
     enabledExtensionNames[enabledExtensionCount++] = XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME;
 #endif
+
+    if (hasExtension(extensions, extensionCount, "XR_EXTX_overlay")) {
+      enabledExtensionNames[enabledExtensionCount++] = "XR_EXTX_overlay";
+      state.features.overlay = true;
+    }
 
 #ifdef LOVR_LINUX_EGL
     enabledExtensionNames[enabledExtensionCount++] = "XR_MNDX_egl_enable";
@@ -381,6 +387,15 @@ static bool openxr_init(float supersample, float offset, uint32_t msaa, bool ove
       .systemId = state.system
     };
 
+    XrSessionCreateInfoOverlayEXTX overlayInfo = {
+      .type = XR_TYPE_SESSION_CREATE_INFO_OVERLAY_EXTX,
+      .next = info.next,
+    };
+
+    if (overlay && state.features.overlay) {
+      info.next = &overlayInfo;
+    }
+
     XrSessionActionSetsAttachInfo attachInfo = {
       .type = XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO,
       .countActionSets = 1,
@@ -487,7 +502,9 @@ static bool openxr_init(float supersample, float offset, uint32_t msaa, bool ove
       .type = XR_TYPE_COMPOSITION_LAYER_PROJECTION,
       .space = state.referenceSpace,
       .viewCount = 2,
-      .views = state.layerViews
+      .views = state.layerViews,
+      .layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT/* |
+                    XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT*/,
     };
 
     // Pre-init composition layer views
