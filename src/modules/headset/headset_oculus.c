@@ -84,7 +84,7 @@ static ovrInputState *refreshButtons(void) {
   return &is;
 }
 
-static bool oculus_init(float supersample, float offset, uint32_t msaa) {
+static bool oculus_init(float supersample, float offset, uint32_t msaa, bool overlay) {
   ovrResult result = ovr_Initialize(NULL);
   if (OVR_FAILURE(result)) {
     return false;

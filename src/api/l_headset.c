@@ -108,6 +108,7 @@ static int l_lovrHeadsetInit(lua_State* L) {
   float supersample = 1.f;
   float offset = 1.7f;
   int msaa = 4;
+  bool overlay = false;
 
   if (lua_istable(L, -1)) {
 
@@ -140,9 +141,14 @@ static int l_lovrHeadsetInit(lua_State* L) {
     lua_getfield(L, -1, "msaa");
     msaa = luaL_optinteger(L, -1, 4);
     lua_pop(L, 1);
+
+    // Overlay
+    lua_getfield(L, -1, "overlay");
+    overlay = lua_toboolean(L, -1);
+    lua_pop(L, 1);
   }
 
-  if (lovrHeadsetInit(drivers, driverCount, supersample, offset, msaa)) {
+  if (lovrHeadsetInit(drivers, driverCount, supersample, offset, msaa, overlay)) {
     luax_atexit(L, lovrHeadsetDestroy);
   }
 

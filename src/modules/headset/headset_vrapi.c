@@ -57,7 +57,7 @@ static struct {
   float hapticDuration[2];
 } state;
 
-static bool vrapi_init(float supersample, float offset, uint32_t msaa) {
+static bool vrapi_init(float supersample, float offset, uint32_t msaa, bool overlay) {
   ANativeActivity* activity = lovrPlatformGetActivity();
   JNIEnv* jni = lovrPlatformGetJNI();
   state.java.Vm = activity->vm;
